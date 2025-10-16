@@ -6,6 +6,7 @@ Máquina resuelta de *TryHackMe* en la que se trabaja la enumeración y *fingerp
   <img src="https://img.shields.io/badge/-Nmap-6933FF?style=for-the-badge&logo=nmap&logoColor=white" />
   <img src="https://img.shields.io/badge/-Dirsearch-005571?style=for-the-badge&logo=dirsearch&logoColor=white" />
   wpscan
+  netcat
   <img src="https://img.shields.io/badge/-php-777BB4?style=for-the-badge&logo=php&logoColor=white" />
   <img src="https://img.shields.io/badge/-Bash-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white" />
   <img src="https://img.shields.io/badge/-python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
@@ -19,10 +20,10 @@ Explicar la realización del siguiente _Capture the flag_ perteneciente a la pla
 ## Que hemos aprendido?
 
 - Realizar *fingerprinting* y enumeración de puertos y enumeración web.
-- Utilizr la herramienta *Wpscan*.
-- .
-- .
-- Descifrar contraseñas.
+- Utilizar la herramienta *Wpscan*.
+- Realizar *reverse shell*.
+- Poner puertos en escucha.
+- Decodificar y desencriptar contraseñas.
 - Buscar archivos por comando.
 - Escalada de privilegios.
 
@@ -30,7 +31,7 @@ Explicar la realización del siguiente _Capture the flag_ perteneciente a la pla
 
 - *Kali Linux*.
 - Enumeración: *Nmap*, *Dirsearch*.
-- Penetración: *Wpscan*, *Bash*, *Python3*, *Unzip*, diferentes decodificadores web. 
+- Penetración: *Wpscan*, *Bash*, *Python3*, *php*, *Netcat*, diferentes decodificadores web. 
 
 ## Steps
 
@@ -58,7 +59,7 @@ Así pues, primero nos dirigimos desde el navegador al puerto 80 de la IP dada y
 
 Como es costumbre se verifica el archivo '/robots.txt', el cual nos muestra la primera de las *flags* dentro del archivo de texto *key-1-of-3.txt*. Para obtenerla solo hay que dirigrse a la dirección 'http://10.10.57.46/key-1-of-3.txt'.
 
-**Flag: 073403c8a58a1f80d943455fb30724b9**
+**Flag 1: 073403c8a58a1f80d943455fb30724b9**
 
 Además, se encuentra un diccionario (fsocity.dic) que puede ser útil más adelante y se descarga con <code>wget</code>.
 
@@ -90,3 +91,17 @@ Una vez visto esto, se prueba hacer *log in* con las credenciales obtenidas y re
 
 <img width="1653" height="1233" alt="image" src="https://github.com/user-attachments/assets/660d71f1-bd72-4de8-87e6-79e652b731c6" />
 
+Desde nuestra máquina se pone en escucha el puerto indicado en la *reverse shell* con la herramienta *netcat*. Sólo queda poner una url inexistetne para producir el error 404 y se produzca la conexión entre máquinas, por ejemplo 'https://10.10.116.104/wp-admi'.
+
+<code>nc -lvnp 1234</code>
+
+Se obtiene acceso como usuario 'daemon' pero nos interesa pivotar a un usuario del sistema. En la carpeta /home se muestra el directorio del usuario 'robot' y dentro de este encontramos el archivo 'key-2-of-3.txt' (el cual no tenemos permisos de lectura) y el archivo 'password.raw-md5'. Si leemos este segundo archivo tenemos el siguiente *hash* 'c3fcd3d76192e4007dfb496cca67e13b'.
+Para desencriptarlo se utiliza la herramienta *Jhon*, indicando el formato del *hash* y la lista en la que basarse para llevar a cabo la acción. Como resultado se consigue la contraseña del usuario 'robot', *abcdefghijklmnopqrstuvwxyz*. Ya hemos conseguido pivotar de usuario.
+
+<code>john -- format=raw-md5 -- wordlist=/usr/share/wordlists/rockyou. txt hash.txt</code>
+
+<img width="778" height="510" alt="image" src="https://github.com/user-attachments/assets/8e5e83a2-12d8-46aa-9d3d-c3d3f681c8bd" />
+
+Ahora ya somos capaces de leer el archivo que contenia la segunda bandera con el comando <code>cat</code>.
+
+**Flag 2: 822c73956184f694993bede3eb39f959**
