@@ -80,8 +80,13 @@ En la primera *flag* se ha aprovechado el decuido de poner información sensible
 
 <code>echo "ZWxsaW90OkVSMjgtMDY1Mgo=" | base64 -d</code>
 
-Lo que nos devuelve es una combianción de usuario:contraseña: *elliot:ER28-0652*.
-WPscan
+Lo que nos devuelve es una combianción de usuario:contraseña: *elliot:ER28-0652*. Primero pruebo iniciar una conexión vía *SSH* pero estas credenciales no son válidas, por lo que tiene pinta que lo serán para el *WordPress* encontrado anteriormente. Antes utilizo la herramienta *Wpscan* para ver que información nos puede recuperar respecto al *Wordpress*. Esta me indica que la versión utilizada es la 4.3.1, la cual es insegura. También muestra el tema configurado 'twentyfiteen', que no hay plugins y otros parámetros.
 
+<code>wpscan --url 10.10.234.12</code>
 
+<img width="999" height="446" alt="Captura de pantalla 2025-10-15 173531" src="https://github.com/user-attachments/assets/fcb7fc22-e719-4ec6-bb55-2d6955ef10e6" />
+
+Una vez visto esto, se prueba hacer *log in* con las credenciales obtenidas y resulta exitoso: hemos iniciado sesión como *Elliot*. Con el acceso total a la configuración del *Wordpress*, se pretende conseguir una *reverse shell* y para ello nos dirigimos a Appearance>Editor. Lo interesante aquí es sustituir el contenido de algún archivo *php* existente con el código de la *reverse shell* y un gran candidato es el '404 Template' (404.php). Este archivo solo se ejecuta cuando no encuentra algun directorio, lo cual podremos forzar para que se ejecute nuestro código. Este lo recuperamos del *Github* de nuestros amigos [*pentestmonkey*](https://github.com/pentestmonkey/php-reverse-shell). Sólo es necesario cambiar las líneas de código donde se indica la dirección *IP* de nuestra máquina atacante y nuestro puerto al que conectarnos.
+
+<img width="1653" height="1233" alt="image" src="https://github.com/user-attachments/assets/660d71f1-bd72-4de8-87e6-79e652b731c6" />
 
