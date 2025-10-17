@@ -31,7 +31,7 @@ Explicar la realización del siguiente _Capture the flag_ perteneciente a la pla
 
 - *Kali Linux*.
 - Enumeración: *Nmap*, *Dirsearch*.
-- Penetración: *Wpscan*, *Bash*, *Python3*, *php*, *Netcat*, diferentes decodificadores web. 
+- Penetración: *Wpscan*, *Bash*, *Python3*, *php*, *Netcat*, *John*. 
 
 ## Steps
 
@@ -102,6 +102,26 @@ Para desencriptarlo se utiliza la herramienta *Jhon*, indicando el formato del *
 
 <img width="778" height="510" alt="image" src="https://github.com/user-attachments/assets/8e5e83a2-12d8-46aa-9d3d-c3d3f681c8bd" />
 
-Ahora ya somos capaces de leer el archivo que contenia la segunda bandera con el comando <code>cat</code>.
+Ahora ya somos capaces de leer el archivo que contenía la segunda bandera con el comando <code>cat</code>.
 
 **Flag 2: 822c73956184f694993bede3eb39f959**
+
+Por última queda realizar la escalada de privilegios, para ello se buscan los binarios con permisos de ejecución de *root* y aprovechar alguna vulnerabilidad que nos permita suplantar su identidad. La búsqueda se realiza con el comando <code>find</code>, desde el directorio raíz e indicando que debe tener el bit SUID activado (-perm -4000). Este bit indica el permiso de ejecución es del propietario y al ejecutarlo se adquieren sus privilegios. Los resultados que no cumplen con estos filtros no son mostrados y enviados a una 'papelera' (2>/dev/null).
+
+<code>find / -perm -4000 2>/dev/null</code>
+
+<img width="483" height="308" alt="Captura de pantalla 2025-10-15 183524" src="https://github.com/user-attachments/assets/f4bbc02d-8f14-45cc-9948-6bf1a11f94b7" />
+
+Después de intentar con varios binarios, se consigue el propósito por medio de *nmap*. Sin embargo, no ha sido posible por medio del bit SUID y se ha aprovechado otra vulnerabilidad del comando <code>sudo</code>, con la ayuda de [*GTFOBins*](https://gtfobins.github.io/gtfobins/nmap/#suid). Para obtener la escalada se utiliza el modo *interactive* sólo disponible en las versiones 2.02-5.21. Un vz comprobada la versión del *nmap* instalado se puede ejecutar los comnados siguietnes para obteenr el rol de *root*.
+
+<code>nmap -v</code>
+
+<code>sudo nmap -- interactive</code>
+
+<code>! sh</code>
+
+<img width="527" height="204" alt="Captura de pantalla 2025-10-15 183502" src="https://github.com/user-attachments/assets/4c126d6c-8558-499c-83c0-e6127cfd29f5" />
+
+Ahora ya se puede acceder al directorio '/root' y leer el archivo con la última bandera 'key-3-of-3.txt'.
+
+**Flag 3: 04787ddef27c3dee1ee161b21670b4e4**
