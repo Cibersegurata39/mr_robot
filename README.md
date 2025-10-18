@@ -77,26 +77,26 @@ De entre los directorios encontrados, además de '/robots.txt' ya visto anterior
 
 ### Vulnerabilidades explotadas
 
-En la primera *flag* se ha aprovechado el decuido de poner información sensible en el arhcivo 'robots.txt' siendo este accesible para cualquiera. Por su parte, el directorio '/license' también es accesible para terceros y lo que parece ser una contraseña, está codificada en base64, lo cual es fácil de descodificar. Para tener éxito se utiliza el comando <code>echo</code> junto con un *pipeline* que indique la decodificación de base64.
+En la primera *flag* se ha aprovechado el descuido de poner información sensible en el archivo 'robots.txt', siendo este accesible para cualquiera. Por su parte, el directorio '/license' también es accesible para terceros y lo que parece ser una contraseña, está codificada en base64, lo cual es fácil de descodificar. Para tener éxito se utiliza el comando <code>echo</code> junto con un _pipeline_ que indique la decodificación de base64.
 
 <code>echo "ZWxsaW90OkVSMjgtMDY1Mgo=" | base64 -d</code>
 
-Lo que nos devuelve es una combianción de usuario:contraseña: *elliot:ER28-0652*. Primero pruebo iniciar una conexión vía *SSH* pero estas credenciales no son válidas, por lo que tiene pinta que lo serán para el *WordPress* encontrado anteriormente. Antes utilizo la herramienta *Wpscan* para ver que información nos puede recuperar respecto al *Wordpress*. Esta me indica que la versión utilizada es la 4.3.1, la cual es insegura. También muestra el tema configurado 'twentyfiteen', que no hay plugins y otros parámetros.
+Lo que nos devuelve es una combianción de usuario y contraseña: *elliot:ER28-0652*. Primero pruebo iniciar una conexión vía *SSH* pero estas credenciales no son válidas, por lo que tiene pinta que lo serán para el *WordPress* encontrado anteriormente. Antes se utiliza la herramienta *Wpscan* para ver que información se puede recuperar respecto al *Wordpress*. Esta me indica que la versión utilizada es la 4.3.1, la cual es insegura. También muestra el tema configurado '_twentyfiteen_', que no hay _plugins_ y otros parámetros.
 
 <code>wpscan --url 10.10.234.12</code>
 
 <img width="999" height="446" alt="Captura de pantalla 2025-10-15 173531" src="https://github.com/user-attachments/assets/fcb7fc22-e719-4ec6-bb55-2d6955ef10e6" />
 
-Una vez visto esto, se prueba hacer *log in* con las credenciales obtenidas y resulta exitoso: hemos iniciado sesión como *Elliot*. Con el acceso total a la configuración del *Wordpress*, se pretende conseguir una *reverse shell* y para ello nos dirigimos a Appearance>Editor. Lo interesante aquí es sustituir el contenido de algún archivo *php* existente con el código de la *reverse shell* y un gran candidato es el '404 Template' (404.php). Este archivo solo se ejecuta cuando no encuentra algun directorio, lo cual podremos forzar para que se ejecute nuestro código. Este lo recuperamos del *Github* de nuestros amigos [*pentestmonkey*](https://github.com/pentestmonkey/php-reverse-shell). Sólo es necesario cambiar las líneas de código donde se indica la dirección *IP* de nuestra máquina atacante y nuestro puerto al que conectarnos.
+Una vez visto esto, se prueba hacer _log in_ con las credenciales obtenidas y resulta exitoso: hemos iniciado sesión como *Elliot*. Con el acceso total a la configuración del *Wordpress*, se pretende conseguir una *reverse shell* y para ello nos dirigimos a '_Appearance>Editor_'. Lo interesante aquí es sustituir el contenido de algún archivo _php_ existente con el código de la *reverse shell* y un gran candidato es el '404 Template' (404.php). Este archivo solo se ejecuta cuando no se encuentra algún directorio, lo cual se podrá forzar para que se ejecute nuestro código. Este lo recuperamos del *Github* de nuestros amigos de [*pentestmonkey*](https://github.com/pentestmonkey/php-reverse-shell). Sólo es necesario cambiar las líneas de código donde se indica la dirección *IP* de la máquina atacante y nuestro puerto al que conectarnos.
 
 <img width="1653" height="1233" alt="image" src="https://github.com/user-attachments/assets/660d71f1-bd72-4de8-87e6-79e652b731c6" />
 
-Desde nuestra máquina se pone en escucha el puerto indicado en la *reverse shell* con la herramienta *netcat*. Sólo queda poner una url inexistetne para producir el error 404 y se produzca la conexión entre máquinas, por ejemplo 'https://10.10.116.104/wp-admi'.
+Desde nuestra máquina se pone en escucha el puerto indicado en la *reverse shell* con la herramienta *netcat*. Sólo queda poner una url inexistetne para producir el error 404 y se ejecute el código provocando la conexión entre máquinas, por ejemplo 'https://10.10.116.104/wp-admi'.
 
 <code>nc -lvnp 1234</code>
 
-Se obtiene acceso como usuario 'daemon' pero nos interesa pivotar a un usuario del sistema. En la carpeta /home se muestra el directorio del usuario 'robot' y dentro de este encontramos el archivo 'key-2-of-3.txt' (el cual no tenemos permisos de lectura) y el archivo 'password.raw-md5'. Si leemos este segundo archivo tenemos el siguiente *hash* 'c3fcd3d76192e4007dfb496cca67e13b'.
-Para desencriptarlo se utiliza la herramienta *Jhon*, indicando el formato del *hash* y la lista en la que basarse para llevar a cabo la acción. Como resultado se consigue la contraseña del usuario 'robot', *abcdefghijklmnopqrstuvwxyz*. Ya hemos conseguido pivotar de usuario.
+Se obtiene acceso como usuario 'daemon' pero nos interesa pivotar a un usuario del sistema. En la carpeta '/home' se muestra el directorio del usuario 'robot' y dentro de este encontramos el archivo 'key-2-of-3.txt' (el cual no tenemos permisos de lectura) y el archivo 'password.raw-md5'. Al leer este segundo archivo se obtiene el siguiente _hash_ 'c3fcd3d76192e4007dfb496cca67e13b'.
+Para desencriptarlo se utiliza la herramienta *John*, indicando el formato del _hash_ y la lista en la que basarse para llevar a cabo la acción. Como resultado se consigue la contraseña del usuario 'robot', *abcdefghijklmnopqrstuvwxyz*. Ya hemos conseguido pivotar de usuario.
 
 <code>john -- format=raw-md5 -- wordlist=/usr/share/wordlists/rockyou. txt hash.txt</code>
 
@@ -106,13 +106,13 @@ Ahora ya somos capaces de leer el archivo que contenía la segunda bandera con e
 
 **Flag 2: 822c73956184f694993bede3eb39f959**
 
-Por última queda realizar la escalada de privilegios, para ello se buscan los binarios con permisos de ejecución de *root* y aprovechar alguna vulnerabilidad que nos permita suplantar su identidad. La búsqueda se realiza con el comando <code>find</code>, desde el directorio raíz e indicando que debe tener el bit SUID activado (-perm -4000). Este bit indica el permiso de ejecución es del propietario y al ejecutarlo se adquieren sus privilegios. Los resultados que no cumplen con estos filtros no son mostrados y enviados a una 'papelera' (2>/dev/null).
+Por último queda realizar la escalada de privilegios, para ello se buscan los binarios con permisos de ejecución de *root* y aprovechar alguna vulnerabilidad que nos permita suplantar su identidad. La búsqueda se realiza con el comando <code>find</code>, desde el directorio raíz e indicando que debe tener el bit SUID activado (-perm -4000). Este bit indica que el permiso de ejecución es del propietario y al ejecutarlo se adquieren sus privilegios. Los resultados que no cumplen con estos filtros no son mostrados y son enviados a una 'papelera' (2>/dev/null).
 
 <code>find / -perm -4000 2>/dev/null</code>
 
 <img width="483" height="308" alt="Captura de pantalla 2025-10-15 183524" src="https://github.com/user-attachments/assets/f4bbc02d-8f14-45cc-9948-6bf1a11f94b7" />
 
-Después de intentar con varios binarios, se consigue el propósito por medio de *nmap*. Sin embargo, no ha sido posible por medio del bit SUID y se ha aprovechado otra vulnerabilidad del comando <code>sudo</code>, con la ayuda de [*GTFOBins*](https://gtfobins.github.io/gtfobins/nmap/#suid). Para obtener la escalada se utiliza el modo *interactive* sólo disponible en las versiones 2.02-5.21. Un vz comprobada la versión del *nmap* instalado se puede ejecutar los comnados siguietnes para obteenr el rol de *root*.
+Después de intentar con varios binarios, se consigue el propósito por medio de *nmap*. Sin embargo, no ha sido posible por medio del bit SUID y se ha aprovechado otra vulnerabilidad del comando <code>sudo</code>, con la ayuda de [*GTFOBins*](https://gtfobins.github.io/gtfobins/nmap/#suid). Para obtener la escalada se utiliza el modo _interactive_, sólo disponible en las versiones 2.02-5.21. Un vez comprobada que la versión del *nmap* instalada es la idónea, se pueden ejecutar los comandos siguientes para obteenr el rol de *root*.
 
 <code>nmap -v</code>
 
@@ -122,6 +122,6 @@ Después de intentar con varios binarios, se consigue el propósito por medio de
 
 <img width="527" height="204" alt="Captura de pantalla 2025-10-15 183502" src="https://github.com/user-attachments/assets/4c126d6c-8558-499c-83c0-e6127cfd29f5" />
 
-Ahora ya se puede acceder al directorio '/root' y leer el archivo con la última bandera 'key-3-of-3.txt'.
+Tras conseguir la escalada de privilegios, ya se puede acceder al directorio '/root' y leer el archivo con la última bandera 'key-3-of-3.txt'.
 
 **Flag 3: 04787ddef27c3dee1ee161b21670b4e4**
